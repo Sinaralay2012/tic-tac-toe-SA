@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #0f0f23, #1a1a2e);
+            color: #ffffff;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+        }
+        h1 {
+            font-size: 2.5em;
+            color: #ffd700;
+            text-shadow: 0 0 10px #ffd700;
+        }
+        .menu-box {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px auto;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 0 20px #ffd700;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+        .language-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .language-selector label {
+            font-size: 1.2em;
+            color: #ffd700;
+        }
+        .language-selector select {
+            background: #ffd700;
+            color: #0f0f23;
+            border: none;
+            padding: 8px 12px;
+            font-size: 1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .language-selector select:hover {
+            background: #ffed4e;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 10px;
+            margin: 20px auto;
+            width: 320px;
+        }
+        .cell {
+            background: radial-gradient(circle, #4a90e2, #1e3a8a);
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+        .cell:hover {
+            background: radial-gradient(circle, #6bb6ff, #3b82f6);
+            transform: scale(1.05);
+        }
+        .cell.x, .cell.o {
+            animation: appear 0.5s ease-in-out;
+        }
+        .cell.x {
+            color: #ff6b6b;
+            text-shadow: 0 0 20px #ff6b6b;
+        }
+        .cell.o {
+            color: #4ecdc4;
+            text-shadow: 0 0 20px #4ecdc4;
+        }
+        @keyframes appear {
+            0% { opacity: 0; transform: scale(0.5); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .message {
+            font-size: 1.5em;
+            margin-top: 20px;
+        }
+        button {
+            background: #ffd700;
+            color: #0f0f23;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background 0.3s, transform 0.2s;
+        }
+        button:hover {
+            background: #ffed4e;
+            transform: scale(1.1);
+        }
+        .hidden {
+            display: none;
+        }
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ffd700;
+            border-radius: 50%;
+            animation: fall 2s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+        .blur-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+            display: none;
+        }
+        .win-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: modalAppear 0.5s ease-out;
+        }
+        .win-box {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 20px;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 0 20px #ffd700;
+        }
+        .win-box h2 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+        .win-box p {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+        @keyframes modalAppear {
+            0% { opacity: 0; transform: translateY(-50px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="blur-overlay" id="blurOverlay"></div>
+    <h1 id="title">Tic Tac Toe</h1>
+    <div class="menu-box">
+        <div class="language-selector">
+            <label for="languageSelect">Bahasa:</label>
+            <select id="languageSelect">
+                <option value="id">Indonesia</option>
+                <option value="en">English</option>
+                <option value="nl">Nederlands</option>
+                <option value="ru">Русский</option>
+                <option value="ja">日本語</option>
+            </select>
+        </div>
+        <button id="playButton">Play</button>
+    </div>
+    <p id="subtitle">X vs O – Kuasai planet-planet!</p>
+    <div id="gameContainer" class="hidden">
+        <div class="board" id="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+        <div class="message" id="message">Giliran X</div>
+        <button onclick="resetGame()">Reset</button>
+    </div>
+
+    <script>
+        const playButton = document.getElementById('playButton');
+        const gameContainer = document.getElementById('gameContainer');
+        const board = document.getElementById('board');
+        const message = document.getElementById('message');
+        const cells = Array.from(document.querySelectorAll('.cell'));
+        const blurOverlay = document.getElementById('blurOverlay');
+        const languageSelect = document.getElementById('languageSelect');
+        const title = document.getElementById('title');
+        const subtitle = document.getElementById('subtitle');
+        let currentPlayer = 'X';
+        let gameActive = true;
+        let currentLanguage = 'id';
+
+        const translations = {
+            id: {
+                title: 'Tic Tac Toe',
+                subtitle: 'X vs O – Kuasai planet-planet!',
+                play: 'Play',
+                reset: 'Reset',
+                turn: 'Giliran',
+                win: 'Menang!',
+                lose: 'Kalah',
+                draw: 'Seri!',
+                ok: 'OK'
+            },
+            en: {
+                title: 'Tic Tac Toe',
+                subtitle: 'X vs O – Conquer the planets!',
+                play: 'Play',
+                reset: 'Reset',
+                turn: 'Turn',
+                win: 'Wins!',
+                lose: 'Loses',
+                draw: 'Draw!',
+                ok: 'OK'
+            },
+            nl: {
+                title: 'Tic Tac Toe',
+                subtitle: 'X vs O – Verover de planeten!',
+                play: 'Spelen',
+                reset: 'Opnieuw',
+                turn: 'Beurt',
+                win: 'Wint!',
+                lose: 'Verliest',
+                draw: 'Gelijkspel!',
+                ok: 'OK'
+            },
+            ru: {
+                title: 'Крестики-Нолики',
+                subtitle: 'X vs O – Завоюй планеты!',
+                play: 'Играть',
+                reset: 'Сброс',
+                turn: 'Ход',
+                win: 'Побеждает!',
+                lose: 'Проигрывает',
+                draw: 'Ничья!',
+                ok: 'OK'
+            },
+            ja: {
+                title: '三目並べ',
+                subtitle: 'X vs O – 惑星を征服せよ！',
+                play: 'プレイ',
+                reset: 'リセット',
+                turn: 'ターン',
+                win: '勝ち！',
+                lose: '負け',
+                draw: '引き分け！',
+                ok: 'OK'
+            }
+        };
+
+        const winningConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Horizontal
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Vertical
+            [0, 4, 8], [2, 4, 6] // Diagonal
+        ];
+
+        // Fungsi untuk membuat partikel bintang
+        function createParticles() {
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.animationDelay = Math.random() * 2 + 's';
+                document.body.appendChild(particle);
+                setTimeout(() => particle.remove(), 2000);
+            }
+        }
+
+        // Fungsi untuk mengubah bahasa
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            const t = translations[lang];
+            title.textContent = t.title;
+            subtitle.textContent = t.subtitle;
+            playButton.textContent = t.play;
+            document.querySelector('#gameContainer button').textContent = t.reset;
+            message.textContent = `${t.turn} X`;
+        }
+
+        // Fungsi untuk menampilkan modal hasil (menang atau seri)
+        function showResultModal(result) {
+            blurOverlay.style.display = 'block';
+            const modal = document.createElement('div');
+            modal.classList.add('win-modal');
+            const t = translations[currentLanguage];
+            let content = '';
+            if (result === 'Seri') {
+                content = `
+                    <div class="win-box">
+                        <h2>${t.draw}</h2>
+                        <button onclick="closeModal()">${t.reset}</button>
+                    </div>
+                `;
+            } else {
+                const loser = result === 'X' ? `O ${t.lose}` : `X ${t.lose}`;
+                content = `
+                    <div class="win-box">
+                        <h2>${result} ${t.win}</h2>
+                        <p>${loser}</p>
+                        <button onclick="closeModal()">${t.ok}</button>
+                    </div>
+                `;
+            }
+            modal.innerHTML = content;
+            document.body.appendChild(modal);
+        }
+
+        // Fungsi untuk menutup modal
+        function closeModal() {
+            blurOverlay.style.display = 'none';
+            const modal = document.querySelector('.win-modal');
+            if (modal) modal.remove();
+            resetGame();
+        }
+
+        playButton.addEventListener('click', () => {
+            gameContainer.classList.remove('hidden');
+            playButton.classList.add('hidden');
+            createParticles(); // Tambahkan partikel saat play
+            resetGame();
+        });
+
+        languageSelect.addEventListener('change', (e) => {
+            changeLanguage(e.target.value);
+        });
+
+        function handleCellClick(event) {
+            const cell = event.target;
+            const index = cell.dataset.index;
+
+            if (cell.textContent !== '' || !gameActive) return;
+
+            // Efek suara sederhana (opsional)
+            playSound();
+
+            cell.textContent = currentPlayer;
+            cell.classList.add(currentPlayer.toLowerCase());
+
+            if (checkWin()) {
+                showResultModal(currentPlayer);
+                gameActive = false;
+                return;
+            }
+
+            if (cells.every(cell => cell.textContent !== '')) {
+                showResultModal('Seri');
+                gameActive = false;
+                return;
+            }
+
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            const t = translations[currentLanguage];
+            message.textContent = `${t.turn} ${currentPlayer}`;
+        }
+
+        function checkWin() {
+            return winningConditions.some(condition => {
+                return condition.every(index => cells[index].textContent === currentPlayer);
+            });
+        }
+
+        function resetGame() {
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('x', 'o');
+            });
+            currentPlayer = 'X';
+            gameActive = true;
+            const t = translations[currentLanguage];
+            message.textContent = `${t.turn} X`;
+        }
+
+        function playSound() {
+            // Suara klik sederhana menggunakan Web Audio API
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+
+        cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+    </script>
+</body>
+</html>
